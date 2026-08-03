@@ -6,6 +6,7 @@ import Catalog from "./Catalog";
 import ContactForm from "./ContactForm";
 import ProductDetails from "./ProductDetails";
 import Footer from "./Footer";
+import Admin from "./Admin";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/contact" element={<ContactForm />} />
         <Route path="/address" element={<Footer />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </BrowserRouter>
   );
