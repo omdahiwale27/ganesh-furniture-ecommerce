@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "./Footer";
+
+import { getAllProducts } from "./services/productService";
 
 import bed from "./assets/bed.jpg";
 import sofaset1 from "./assets/sofaset1.jpg";
@@ -17,21 +19,17 @@ import SteelAlmari from "./assets/SteelAlmari.jpg";
 function Catalog() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const products = [
-    { id: 1, name: "Wooden Bed", price: "₹12,000", image: bed, category: "Furniture" },
-    { id: 2, name: "Sofa Set", price: "₹10,000", image: sofaset1, category: "Furniture" },
-    { id: 3, name: "Wooden Chair", price: "₹3,000", image: chair1, category: "Furniture" },
-    { id: 4, name: "LED TV", price: "₹10,000", image: Ledtv, category: "Electronics" },
-    { id: 5, name: "Samsung Smart TV", price: "₹20,000", image: samsung, category: "Electronics" },
-    { id: 6, name: "Ceiling Fan", price: "₹1,500", image: Fan, category: "Electronics" },
-    { id: 7, name: "Computer Table", price: "₹2,500", image: ComputerTable, category: "Furniture" },
-    {id: 8, name: "CornerSofa", price: "₹15,000", image: CornerSofa, category: "Furniture"},
-    {id: 9, name: "DinningTable", price: "₹8,500", image: DinningTable, category: "Furniture"},
-    {id: 10, name: "IronAlmari", price: "₹1,800", image: IronAlmari, category: "Furniture"},
-    {id: 11, name: "SteelAlmari", price: "₹2,500", image: SteelAlmari, category: "Furniture"},
-    
-  ];
+  const [products, setProducts] = useState([]);
 
+useEffect(() => {
+    getAllProducts()
+        .then((data) => {
+            setProducts(data);
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+}, []);
   const filteredProducts =
     selectedCategory === "All"
       ? products
@@ -124,13 +122,20 @@ function Catalog() {
               onMouseOver={hoverIn}
               onMouseOut={hoverOut}
             >
-              <img src={product.image} alt={product.name} style={imageStyle} />
-
+              <img
+    src={chair1}
+    alt={product.name}
+    
+    style={imageStyle}
+/>
+<p style={{ color: "#666" }}>
+    {product.description}
+</p>
               <div style={{ padding: "15px" }}>
                 <h3 style={{ margin: "5px 0" }}>{product.name}</h3>
                 <p style={{ color: "#777", marginBottom: "8px" }}>{product.category}</p>
                 <p style={{ color: "#ff7a00", fontWeight: "bold", fontSize: "18px" }}>
-                  {product.price}
+                  ₹{product.price}
                 </p>
 
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "12px" }}>
