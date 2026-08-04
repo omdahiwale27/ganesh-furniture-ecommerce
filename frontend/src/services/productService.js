@@ -11,3 +11,10 @@ export const getProductById = async (id) => {
     const response = await axios.get(`${API_URL}/${id}`);
     return response.data;
 };
+export const deleteProduct = async (id) => {
+    await axios.delete(`${API_URL}/${id}`);
+};
+export const updateProduct = async (id, product) => {
+    const response = await axios.put(`${API_URL}/${id}`, product);
+    return response.data;
+};
