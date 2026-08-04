@@ -56,7 +56,33 @@ function Admin() {
     try {
      if (editingId) {
 
-    await updateProduct(editingId, formData);
+    let uploadedFileName = formData.imageUrl;
+
+    if (image) {
+
+        const imageData = new FormData();
+
+        imageData.append("file", image);
+
+        const uploadResponse = await axios.post(
+            "http://localhost:8080/files/upload",
+            imageData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            }
+        );
+
+        uploadedFileName = uploadResponse.data;
+    }
+
+    const updatedProduct = {
+        ...formData,
+        imageUrl: uploadedFileName
+    };
+
+    await updateProduct(editingId, updatedProduct);
 
     alert("Product Updated Successfully!");
 
@@ -65,6 +91,7 @@ function Admin() {
 } else {
 
     let uploadedFileName = "";
+    console.log("Selected image:", image);
 
 if (image) {
 
@@ -81,6 +108,7 @@ if (image) {
             }
         }
     );
+    console.log("Uploaded filename:", uploadResponse.data);
 
     uploadedFileName = uploadResponse.data;
 }
