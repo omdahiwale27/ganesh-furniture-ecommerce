@@ -116,14 +116,21 @@ function Home() {
               }}
             >
               <img
-                src={chair1}
-                alt={product.name}
-                style={{
-                  width: "100%",
-                  height: "180px",
-                  objectFit: "cover",
-                }}
-              />
+  src={
+    product.imageUrl
+      ? `http://localhost:8080/uploads/${product.imageUrl}`
+      : chair1
+  }
+  alt={product.name}
+  style={{
+    width: "100%",
+    height: "180px",
+    objectFit: "cover",
+  }}
+  onError={(e) => {
+    e.target.src = chair1;
+  }}
+/>
 
               <div style={{ padding: "15px" }}>
 

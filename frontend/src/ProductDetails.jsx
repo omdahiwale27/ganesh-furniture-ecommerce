@@ -58,16 +58,23 @@ useEffect(() => {
         }}
       >
         <div style={{ flex: "1 1 420px" }}>
-          <img
-    src={chair1}
-            alt={product.name}
-            style={{
-              width: "100%",
-              maxWidth: "500px",
-              borderRadius: "16px",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            }}
-          />
+         <img
+    src={
+        product.imageUrl
+            ? `http://localhost:8080/uploads/${product.imageUrl}`
+            : chair1
+    }
+    alt={product.name}
+    style={{
+        width: "100%",
+        maxWidth: "500px",
+        borderRadius: "16px",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+    }}
+    onError={(e) => {
+        e.target.src = chair1;
+    }}
+/>
         </div>
 
         <div style={{ flex: "1 1 420px" }}>

@@ -122,11 +122,17 @@ useEffect(() => {
               onMouseOver={hoverIn}
               onMouseOut={hoverOut}
             >
-              <img
-    src={chair1}
+             <img
+    src={
+        product.imageUrl
+            ? `http://localhost:8080/uploads/${product.imageUrl}`
+            : chair1
+    }
     alt={product.name}
-    
     style={imageStyle}
+    onError={(e) => {
+        e.target.src = chair1;
+    }}
 />
 <p style={{ color: "#666" }}>
     {product.description}

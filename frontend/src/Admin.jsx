@@ -22,6 +22,8 @@ function Admin() {
 
   const [editingId, setEditingId] = useState(null);
 
+  const [image, setImage] = useState(null);
+
   // Load all products
   const loadProducts = () => {
     getAllProducts()
@@ -62,6 +64,27 @@ function Admin() {
 
 } else {
 
+    let uploadedFileName = "";
+
+if (image) {
+
+    const imageData = new FormData();
+
+    imageData.append("file", image);
+
+    const uploadResponse = await axios.post(
+        "http://localhost:8080/files/upload",
+        imageData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        }
+    );
+
+    uploadedFileName = uploadResponse.data;
+}
+formData.imageUrl = uploadedFileName;
     await axios.post(
         "http://localhost:8080/products",
         formData
@@ -234,12 +257,10 @@ loadProducts();
         <br />
 
         <input
-          name="imageUrl"
-          placeholder="Image URL"
-          value={formData.imageUrl}
-          onChange={handleChange}
-          style={{ width: "100%", padding: "10px" }}
-        />
+    type="file"
+    accept="image/*"
+    onChange={(e) => setImage(e.target.files[0])}
+/>
 
         <br />
         <br />
