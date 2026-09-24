@@ -167,8 +167,8 @@ The project is currently under active development.
 | Admin Add Product    | ✅ Completed |
 | Admin Edit Product   | ✅ Completed |
 | Admin Delete Product | ✅ Completed |
-| Image Upload         | ⏳ Pending   |
-| Search & Filters     | ⏳ Pending   |
+| Image Upload         | ✅ Completed |
+| Search & Filters     | ✅ Completed |
 | Authentication       | ⏳ Pending   |
 | Shopping Cart        | ⏳ Pending   |
 | Wishlist             | ⏳ Pending   |
@@ -176,7 +176,7 @@ The project is currently under active development.
 | Order Management     | ⏳ Pending   |
 | Deployment           | ⏳ Pending   |
 
-**Overall Progress: ~75%**
+**Project Status: 🚧 Active Development**
 
 ---
 
