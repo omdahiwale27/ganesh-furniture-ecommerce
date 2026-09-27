@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+
 import {
   getAllProducts,
   getProductById,
+  createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  uploadImage,
 } from "./services/productService";
+
+const handleLogout = () => {
+  localStorage.removeItem("adminToken");
+  localStorage.removeItem("adminUsername");
+
+  window.location.href = "/admin";
+};
 
 function Admin() {
   const [formData, setFormData] = useState({
@@ -49,79 +58,40 @@ function Admin() {
     });
   };
 
-  // Add product
+  // Add / Update product
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-     if (editingId) {
+      let uploadedFileName = formData.imageUrl;
 
-    let uploadedFileName = formData.imageUrl;
+      // Upload new image if selected
+      if (image) {
+        uploadedFileName = await uploadImage(image);
 
-    if (image) {
+        console.log("Uploaded filename:", uploadedFileName);
+      }
 
-        const imageData = new FormData();
-
-        imageData.append("file", image);
-
-        const uploadResponse = await axios.post(
-            "http://localhost:8080/files/upload",
-            imageData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            }
-        );
-
-        uploadedFileName = uploadResponse.data;
-    }
-
-    const updatedProduct = {
+      const productData = {
         ...formData,
-        imageUrl: uploadedFileName
-    };
+        imageUrl: uploadedFileName,
+      };
 
-    await updateProduct(editingId, updatedProduct);
+      // Update existing product
+      if (editingId) {
+        await updateProduct(editingId, productData);
 
-    alert("Product Updated Successfully!");
+        alert("Product Updated Successfully!");
+      }
 
-    setEditingId(null);
+      // Add new product
+      else {
+        await createProduct(productData);
 
-} else {
+        alert("Product Added Successfully!");
+      }
 
-    let uploadedFileName = "";
-    console.log("Selected image:", image);
-
-if (image) {
-
-    const imageData = new FormData();
-
-    imageData.append("file", image);
-
-    const uploadResponse = await axios.post(
-        "http://localhost:8080/files/upload",
-        imageData,
-        {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        }
-    );
-    console.log("Uploaded filename:", uploadResponse.data);
-
-    uploadedFileName = uploadResponse.data;
-}
-formData.imageUrl = uploadedFileName;
-    await axios.post(
-        "http://localhost:8080/products",
-        formData
-    );
-
-    alert("Product Added Successfully!");
-
-}
-
+      // Reset form
       setFormData({
         name: "",
         description: "",
@@ -132,75 +102,88 @@ formData.imageUrl = uploadedFileName;
         brand: "",
       });
 
+      setImage(null);
       setEditingId(null);
 
-loadProducts();
-
       loadProducts();
+
     } catch (error) {
       console.error(error);
-      alert("Failed to add product");
+
+      if (error.response?.status === 401) {
+        alert("Session expired. Please login again.");
+        handleLogout();
+      } else if (error.response?.status === 403) {
+        alert("You are not authorized to perform this action.");
+      } else {
+        alert(
+          editingId
+            ? "Failed to update product"
+            : "Failed to add product"
+        );
+      }
     }
   };
 
+  // Edit product
   const handleEdit = async (id) => {
-
     try {
+      const product = await getProductById(id);
 
-        const product = await getProductById(id);
+      setFormData({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        stock: product.stock,
+        imageUrl: product.imageUrl,
+        brand: product.brand,
+      });
 
-        setFormData({
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            category: product.category,
-            stock: product.stock,
-            imageUrl: product.imageUrl,
-            brand: product.brand
-        });
+      setEditingId(id);
 
-        setEditingId(id);
+      setImage(null);
 
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
 
     } catch (error) {
+      console.error(error);
 
-        console.error(error);
-
-        alert("Unable to load product");
-
+      alert("Unable to load product");
     }
+  };
 
-};
-
+  // Delete product
   const handleDelete = async (id) => {
-
     const confirmDelete = window.confirm(
-        "Are you sure you want to delete this product?"
+      "Are you sure you want to delete this product?"
     );
 
     if (!confirmDelete) return;
 
     try {
+      await deleteProduct(id);
 
-        await deleteProduct(id);
+      alert("Product Deleted Successfully!");
 
-        alert("Product Deleted Successfully!");
-
-        loadProducts();
+      loadProducts();
 
     } catch (error) {
+      console.error(error);
 
-        console.error(error);
-
+      if (error.response?.status === 401) {
+        alert("Session expired. Please login again.");
+        handleLogout();
+      } else if (error.response?.status === 403) {
+        alert("You are not authorized to delete this product.");
+      } else {
         alert("Failed to delete product");
-
+      }
     }
-
-};
+  };
 
   return (
     <div
@@ -213,15 +196,47 @@ loadProducts();
         background: "white",
       }}
     >
-      <h1 style={{ textAlign: "center" }}>Admin Dashboard</h1>
+      <h1 style={{ textAlign: "center" }}>
+        Admin Dashboard
+      </h1>
 
+      {/* Logout */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "20px",
+        }}
+      >
+        <button
+          onClick={handleLogout}
+          style={{
+            background: "#dc3545",
+            color: "white",
+            border: "none",
+            padding: "10px 18px",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Logout
+        </button>
+      </div>
+
+      {/* Product Form */}
       <form onSubmit={handleSubmit}>
         <input
           name="name"
           placeholder="Product Name"
           value={formData.name}
           onChange={handleChange}
-          style={{ width: "100%", padding: "10px" }}
+          required
+          style={{
+            width: "100%",
+            padding: "10px",
+            boxSizing: "border-box",
+          }}
         />
 
         <br />
@@ -232,7 +247,12 @@ loadProducts();
           placeholder="Description"
           value={formData.description}
           onChange={handleChange}
-          style={{ width: "100%", padding: "10px" }}
+          required
+          style={{
+            width: "100%",
+            padding: "10px",
+            boxSizing: "border-box",
+          }}
         />
 
         <br />
@@ -244,7 +264,12 @@ loadProducts();
           placeholder="Price"
           value={formData.price}
           onChange={handleChange}
-          style={{ width: "100%", padding: "10px" }}
+          required
+          style={{
+            width: "100%",
+            padding: "10px",
+            boxSizing: "border-box",
+          }}
         />
 
         <br />
@@ -255,7 +280,12 @@ loadProducts();
           placeholder="Category"
           value={formData.category}
           onChange={handleChange}
-          style={{ width: "100%", padding: "10px" }}
+          required
+          style={{
+            width: "100%",
+            padding: "10px",
+            boxSizing: "border-box",
+          }}
         />
 
         <br />
@@ -266,7 +296,12 @@ loadProducts();
           placeholder="Brand"
           value={formData.brand}
           onChange={handleChange}
-          style={{ width: "100%", padding: "10px" }}
+          required
+          style={{
+            width: "100%",
+            padding: "10px",
+            boxSizing: "border-box",
+          }}
         />
 
         <br />
@@ -278,24 +313,54 @@ loadProducts();
           placeholder="Stock"
           value={formData.stock}
           onChange={handleChange}
-          style={{ width: "100%", padding: "10px" }}
+          required
+          style={{
+            width: "100%",
+            padding: "10px",
+            boxSizing: "border-box",
+          }}
         />
 
         <br />
         <br />
 
         <input
-    type="file"
-    accept="image/*"
-    onChange={(e) => setImage(e.target.files[0])}
-/>
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+        />
 
         <br />
         <br />
 
         <button type="submit">
-    {editingId ? "Update Product" : "Add Product"}
-</button>
+          {editingId ? "Update Product" : "Add Product"}
+        </button>
+
+        {editingId && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditingId(null);
+              setImage(null);
+
+              setFormData({
+                name: "",
+                description: "",
+                price: "",
+                category: "",
+                stock: "",
+                imageUrl: "",
+                brand: "",
+              });
+            }}
+            style={{
+              marginLeft: "10px",
+            }}
+          >
+            Cancel
+          </button>
+        )}
       </form>
 
       <hr style={{ margin: "40px 0" }} />
@@ -323,41 +388,45 @@ loadProducts();
           {products.map((product) => (
             <tr key={product.id}>
               <td>{product.id}</td>
+
               <td>{product.name}</td>
+
               <td>{product.category}</td>
+
               <td>₹{product.price}</td>
+
               <td>{product.stock}</td>
 
               <td>
-  <button
-    onClick={() => handleEdit(product.id)}
-    style={{
-      background: "#007bff",
-      color: "white",
-      border: "none",
-      padding: "8px 14px",
-      borderRadius: "6px",
-      cursor: "pointer",
-      marginRight: "8px",
-    }}
-  >
-    Edit
-  </button>
+                <button
+                  onClick={() => handleEdit(product.id)}
+                  style={{
+                    background: "#007bff",
+                    color: "white",
+                    border: "none",
+                    padding: "8px 14px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    marginRight: "8px",
+                  }}
+                >
+                  Edit
+                </button>
 
-  <button
-    onClick={() => handleDelete(product.id)}
-    style={{
-      background: "red",
-      color: "white",
-      border: "none",
-      padding: "8px 14px",
-      borderRadius: "6px",
-      cursor: "pointer",
-    }}
-  >
-    Delete
-  </button>
-</td>
+                <button
+                  onClick={() => handleDelete(product.id)}
+                  style={{
+                    background: "red",
+                    color: "white",
+                    border: "none",
+                    padding: "8px 14px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Delete
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

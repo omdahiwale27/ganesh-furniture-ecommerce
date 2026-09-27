@@ -1,0 +1,63 @@
+# =========================
+# Frontend - React / Vite
+# =========================
+
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# Environment files
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+
+# =========================
+# Backend - Spring Boot
+# =========================
+
+backend/target/
+
+# Backend uploaded/generated files
+backend/uploads/
+
+# Environment / secrets
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+
+# =========================
+# Archives / Backups
+# =========================
+
+*.zip
+*.rar
+*.7z
+
+
+# =========================
+# IDE / OS
+# =========================
+
+.vscode/
+.idea/
+.DS_Store
+*.iml
+*.suo
+*.user
+*.swp
+
+
+# =========================
+# Logs
+# =========================
+
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

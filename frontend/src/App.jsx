@@ -7,6 +7,8 @@ import ContactForm from "./ContactForm";
 import ProductDetails from "./ProductDetails";
 import Footer from "./Footer";
 import Admin from "./Admin";
+import AdminLogin from "./AdminLogin";
+import AdminRoute from "./AdminRoute";
 
 function App() {
   return (
@@ -19,7 +21,15 @@ function App() {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/contact" element={<ContactForm />} />
         <Route path="/address" element={<Footer />} />
-        <Route path="/admin" element={<Admin />} />
+       <Route path="/admin" element={<AdminLogin />} />
+<Route
+  path="/admin/dashboard"
+  element={
+    <AdminRoute>
+      <Admin />
+    </AdminRoute>
+  }
+/>
       </Routes>
     </BrowserRouter>
   );

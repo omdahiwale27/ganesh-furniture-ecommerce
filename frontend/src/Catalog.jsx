@@ -1,219 +1,442 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Footer from "./Footer";
 
 import { getAllProducts } from "./services/productService";
 
-import bed from "./assets/bed.jpg";
-import sofaset1 from "./assets/sofaset1.jpg";
-import chair1 from "./assets/Chair1.jpg";
-import Ledtv from "./assets/Ledtv.jpg";
-import samsung from "./assets/sams.jpg";
-import Fan from "./assets/Fan.png";
-import ComputerTable from "./assets/ComputerTable.jpg";
-import CornerSofa from "./assets/CornerSofa.jpg";
-import DinningTable from "./assets/DinningTable.jpg";
-import IronAlmari from "./assets/IronAlmari.jpg";
-import SteelAlmari from "./assets/SteelAlmari.jpg";
+import "./Catalog.css";
 
 function Catalog() {
   const [selectedCategory, setSelectedCategory] = useState("All");
-
+  const [sortOption, setSortOption] = useState("default");
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-useEffect(() => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const searchKeyword = searchParams.get("search") || "";
+
+  useEffect(() => {
+    setLoading(true);
+
     getAllProducts()
-        .then((data) => {
-            setProducts(data);
-        })
-        .catch((error) => {
-            console.error(error);
-        });
-}, []);
-  const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : products.filter((product) => product.category === selectedCategory);
+      .then((data) => {
+        console.log("Catalog Products:", data);
+        setProducts(data);
+      })
+      .catch((error) => {
+        console.error("Error loading products:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
-  const cardStyle = {
-    width: "270px",
-    borderRadius: "14px",
-    background: "#fff",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
-    overflow: "hidden",
-    transition: "0.3s",
-    cursor: "pointer",
+  /* =========================
+     FILTER PRODUCTS
+  ========================= */
+
+  const filteredProducts = products
+    .filter((product) => {
+
+      const matchesCategory =
+        selectedCategory === "All" ||
+        product.category === selectedCategory;
+
+      const keyword = searchKeyword.toLowerCase().trim();
+
+      const matchesSearch =
+        keyword === "" ||
+        product.name?.toLowerCase().includes(keyword) ||
+        product.description?.toLowerCase().includes(keyword) ||
+        product.category?.toLowerCase().includes(keyword) ||
+        product.brand?.toLowerCase().includes(keyword);
+
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+
+      if (sortOption === "low-high") {
+        return Number(a.price) - Number(b.price);
+      }
+
+      if (sortOption === "high-low") {
+        return Number(b.price) - Number(a.price);
+      }
+
+      if (sortOption === "name") {
+        return a.name.localeCompare(b.name);
+      }
+
+      return 0;
+    });
+
+  /* =========================
+     CLEAR FILTERS
+  ========================= */
+
+  const clearFilters = () => {
+    setSelectedCategory("All");
+    setSortOption("default");
+
+    setSearchParams({});
   };
 
-  const imageStyle = {
-    width: "100%",
-    height: "190px",
-    objectFit: "cover",
-  };
+  /* =========================
+     IMAGE URL
+  ========================= */
 
-  const hoverIn = (e) => {
-    e.currentTarget.style.transform = "translateY(-6px)";
-  };
+  const getImageUrl = (product) => {
 
-  const hoverOut = (e) => {
-    e.currentTarget.style.transform = "translateY(0)";
-  };
+    if (!product.imageUrl) {
+      return "https://via.placeholder.com/600x500?text=No+Image";
+    }
 
-  const filterButtonStyle = (active) => ({
-    padding: "10px 18px",
-    border: "none",
-    borderRadius: "8px",
-    background: active ? "#ff7a00" : "#ececec",
-    color: active ? "white" : "#333",
-    cursor: "pointer",
-    fontWeight: "600",
-  });
+    if (product.imageUrl.startsWith("http")) {
+      return product.imageUrl;
+    }
+
+    return `http://localhost:8080/files/${product.imageUrl}`;
+  };
 
   return (
-    <div style={{ background: "#fafafa", minHeight: "100vh" }}>
-      <div style={{ padding: "60px 20px 30px", fontFamily: "Arial" }}>
-        <h1 style={{ textAlign: "center", marginBottom: "10px", fontWeight: "700" }}>
-          Our Product Catalog
-        </h1>
+    <div className="catalog-page">
 
-        <p style={{ textAlign: "center", color: "#666", marginBottom: "30px" }}>
-          Browse our collection of furniture and electronics
-        </p>
+      {/* =========================
+          PAGE HERO
+      ========================= */}
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "12px",
-            flexWrap: "wrap",
-            marginBottom: "35px",
-          }}
-        >
-          <button style={filterButtonStyle(selectedCategory === "All")} onClick={() => setSelectedCategory("All")}>
-            All
-          </button>
-          <button
-            style={filterButtonStyle(selectedCategory === "Furniture")}
-            onClick={() => setSelectedCategory("Furniture")}
-          >
-            Furniture
-          </button>
-          <button
-            style={filterButtonStyle(selectedCategory === "Electronics")}
-            onClick={() => setSelectedCategory("Electronics")}
-          >
-            Electronics
-          </button>
+      <section className="catalog-hero">
+
+        <div className="catalog-hero-content">
+
+          <span className="catalog-eyebrow">
+            GANESH FURNITURE & ELECTRONICS
+          </span>
+
+          <h1>Explore Our Collection</h1>
+
+          <p>
+            Discover furniture, electronics and home essentials
+            designed for modern living.
+          </p>
+
+          <div className="catalog-breadcrumb">
+            <Link to="/">Home</Link>
+            <span> / </span>
+            <strong>Catalog</strong>
+          </div>
+
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: "30px",
-          }}
-        >
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              style={cardStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-            >
-             <img
-    src={
-        product.imageUrl
-            ? `http://localhost:8080/uploads/${product.imageUrl}`
-            : chair1
-    }
-    alt={product.name}
-    style={imageStyle}
-    onError={(e) => {
-        e.target.src = chair1;
-    }}
-/>
-<p style={{ color: "#666" }}>
-    {product.description}
-</p>
-              <div style={{ padding: "15px" }}>
-                <h3 style={{ margin: "5px 0" }}>{product.name}</h3>
-                <p style={{ color: "#777", marginBottom: "8px" }}>{product.category}</p>
-                <p style={{ color: "#ff7a00", fontWeight: "bold", fontSize: "18px" }}>
-                  ₹{product.price}
-                </p>
+      </section>
 
-                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "12px" }}>
-                  <a
-                    href={`https://wa.me/917057251245?text=Hello, I am interested in ${product.name}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ textDecoration: "none" }}
-                  >
-                    <button
-                      style={{
-                        padding: "10px 15px",
-                        border: "none",
-                        background: "#25D366",
-                        color: "white",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        fontWeight: "600",
-                      }}
+
+      {/* =========================
+          CATALOG CONTENT
+      ========================= */}
+
+      <main className="catalog-container">
+
+        {/* HEADER */}
+
+        <div className="catalog-heading">
+
+          <div>
+
+            <span className="section-label">
+              OUR PRODUCTS
+            </span>
+
+            <h2>
+              Shop Our Collection
+            </h2>
+
+            <p>
+              Find the right products for your home.
+            </p>
+
+          </div>
+
+          <div className="product-count">
+            {filteredProducts.length} Products
+          </div>
+
+        </div>
+
+
+        {/* SEARCH RESULT */}
+
+        {searchKeyword && (
+
+          <div className="search-result-banner">
+
+            <div>
+
+              <span>Search results for</span>
+
+              <strong>
+                "{searchKeyword}"
+              </strong>
+
+            </div>
+
+            <button onClick={clearFilters}>
+              Clear Search
+            </button>
+
+          </div>
+
+        )}
+
+
+        {/* =========================
+            FILTER BAR
+        ========================= */}
+
+        <div className="catalog-filter-bar">
+
+          <div className="category-filters">
+
+            <span className="filter-title">
+              Category
+            </span>
+
+            <button
+              className={
+                selectedCategory === "All"
+                  ? "filter-btn active"
+                  : "filter-btn"
+              }
+              onClick={() => setSelectedCategory("All")}
+            >
+              All
+            </button>
+
+            <button
+              className={
+                selectedCategory === "Furniture"
+                  ? "filter-btn active"
+                  : "filter-btn"
+              }
+              onClick={() => setSelectedCategory("Furniture")}
+            >
+              Furniture
+            </button>
+
+            <button
+              className={
+                selectedCategory === "Electronics"
+                  ? "filter-btn active"
+                  : "filter-btn"
+              }
+              onClick={() => setSelectedCategory("Electronics")}
+            >
+              Electronics
+            </button>
+
+          </div>
+
+
+          <div className="sort-area">
+
+            <label htmlFor="sort">
+              Sort by
+            </label>
+
+            <select
+              id="sort"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+
+              <option value="default">
+                Featured
+              </option>
+
+              <option value="low-high">
+                Price: Low to High
+              </option>
+
+              <option value="high-low">
+                Price: High to Low
+              </option>
+
+              <option value="name">
+                Name: A-Z
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        {/* =========================
+            PRODUCTS
+        ========================= */}
+
+        {loading ? (
+
+          <div className="catalog-loading">
+
+            <div className="loading-spinner"></div>
+
+            <p>Loading products...</p>
+
+          </div>
+
+        ) : filteredProducts.length > 0 ? (
+
+          <div className="catalog-product-grid">
+
+            {filteredProducts.map((product) => (
+
+              <article
+                className="catalog-product-card"
+                key={product.id}
+              >
+
+                {/* IMAGE */}
+
+                <div className="catalog-image-container">
+
+                  <img
+                    src={getImageUrl(product)}
+                    alt={product.name}
+                    className="catalog-product-image"
+                    onError={(e) => {
+
+                      e.currentTarget.src =
+                        "https://via.placeholder.com/600x500?text=No+Image";
+
+                    }}
+                  />
+
+                  <span className="catalog-product-badge">
+                    Available
+                  </span>
+
+                </div>
+
+
+                {/* CONTENT */}
+
+                <div className="catalog-product-content">
+
+                  <span className="catalog-product-category">
+                    {product.category || "Home"}
+                  </span>
+
+                  <h3>
+                    {product.name}
+                  </h3>
+
+                  {product.brand && (
+                    <span className="catalog-product-brand">
+                      {product.brand}
+                    </span>
+                  )}
+
+                  <p className="catalog-product-description">
+
+                    {product.description
+                      ? product.description.length > 90
+                        ? `${product.description.substring(
+                            0,
+                            90
+                          )}...`
+                        : product.description
+                      : "Quality product for your home."}
+
+                  </p>
+
+
+                  {/* PRICE */}
+
+                  <div className="catalog-product-price">
+
+                    ₹
+                    {Number(product.price).toLocaleString(
+                      "en-IN"
+                    )}
+
+                  </div>
+
+
+                  {/* ACTIONS */}
+
+                  <div className="catalog-product-actions">
+
+                    <Link
+                      to={`/product/${product.id}`}
+                      className="details-btn"
+                    >
+                      View Details
+                      <span>→</span>
+                    </Link>
+
+                    <a
+                      href={`https://wa.me/917057251245?text=${encodeURIComponent(
+                        `Hello, I want to know more about ${product.name}`
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="whatsapp-btn"
                     >
                       WhatsApp
-                    </button>
-                  </a>
+                    </a>
 
-                  <Link to="/contact" style={{ textDecoration: "none" }}>
-                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "12px" }}>
-  <Link to={`/product/${product.id}`} style={{ textDecoration: "none" }}>
-    <button
-      style={{
-        padding: "10px 15px",
-        border: "none",
-        background: "#ff7a00",
-        color: "white",
-        borderRadius: "8px",
-        cursor: "pointer",
-        fontWeight: "600",
-      }}
-    >
-      View Details
-    </button>
-  </Link>
+                  </div>
 
-  <a
-    href={`https://wa.me/917057251245?text=Hello, I want to buy ${product.name}`}
-    target="_blank"
-    rel="noreferrer"
-    style={{ textDecoration: "none" }}
-  >
-    <button
-      style={{
-        padding: "10px 15px",
-        border: "none",
-        background: "#25D366",
-        color: "white",
-        borderRadius: "8px",
-        cursor: "pointer",
-        fontWeight: "600",
-      }}
-    >
-      WhatsApp
-    </button>
-  </a>
-</div>
-                  </Link>
                 </div>
-              </div>
+
+              </article>
+
+            ))}
+
+          </div>
+
+        ) : (
+
+          /* =========================
+             NO RESULTS
+          ========================= */
+
+          <div className="catalog-empty">
+
+            <div className="empty-icon">
+              🔎
             </div>
-          ))}
-        </div>
-      </div>
+
+            <h2>
+              No products found
+            </h2>
+
+            <p>
+              We couldn't find products matching your
+              current search or filters.
+            </p>
+
+            <button
+              className="clear-filter-btn"
+              onClick={clearFilters}
+            >
+              View All Products
+            </button>
+
+          </div>
+
+        )}
+
+      </main>
+
+
+      {/* FOOTER */}
 
       <Footer />
+
     </div>
   );
 }
